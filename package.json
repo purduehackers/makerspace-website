@@ -1,0 +1,18 @@
+{
+  "name": "hive-makerspace",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "start": "node ./dist/server/entry.mjs"
+  },
+  "dependencies": {
+    "@astrojs/node": "^10.1.4",
+    "@tailwindcss/postcss": "^4.1.0",
+    "astro": "^6.0.0",
+    "node-ical": "^0.27.6",
+    "tailwindcss": "^4.1.0"
+  }
+}

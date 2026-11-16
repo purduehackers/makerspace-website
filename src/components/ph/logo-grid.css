@@ -1,0 +1,69 @@
+/* --logo-base sets the em unit the normalized logo sizes are written in. */
+.ph-logo-grid {
+  --logo-base: 32px;
+  font-size: var(--logo-base);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9em 1.2em;
+}
+
+@media (min-width: 768px) {
+  .ph-logo-grid {
+    --logo-base: 45px;
+    gap: 1em 1.75em;
+  }
+}
+
+.ph-logo-grid__cell {
+  position: relative;
+  display: block;
+  flex: none;
+}
+
+.ph-logo-grid__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Static silhouette. Tweening invert() toward none passes through flat gray,
+   so the brand copy crossfades in on top instead. */
+.ph-logo-grid__img--wash {
+  filter: brightness(0);
+}
+
+.dark .ph-logo-grid__img--wash,
+[data-tone="dark"] .ph-logo-grid__img--wash {
+  filter: brightness(0) invert(1);
+}
+
+.ph-logo-grid__img--brand {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.ph-logo-grid__img--brand-dark,
+.dark .ph-logo-grid__img--brand-light,
+[data-tone="dark"] .ph-logo-grid__img--brand-light {
+  display: none;
+}
+
+.dark .ph-logo-grid__img--brand-dark,
+[data-tone="dark"] .ph-logo-grid__img--brand-dark {
+  display: block;
+}
+
+.ph-logo-grid__cell:is(:hover, :focus-visible) .ph-logo-grid__img--brand {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ph-logo-grid__img--brand {
+    transition: none;
+  }
+}

@@ -1,0 +1,65 @@
+---
+import Link from './ph/Link.astro';
+import { pixelOrder } from './ph/dither';
+
+interface Props {
+  name: string;
+  src: string;
+  alt: string;
+  credit?: { name: string; href: string };
+  reveal?: boolean;
+}
+
+const { name, src, alt, credit, reveal = false } = Astro.props;
+const columns = 16;
+const rows = 10;
+const order = reveal ? pixelOrder(columns * rows, name.length) : [];
+const maskId = `color-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+const Frame = reveal ? 'button' : 'div';
+---
+
+<figure class="inventory-photo" data-photo-reveal={reveal ? '' : undefined}>
+  <Frame
+    class="inventory-image"
+    type={reveal ? 'button' : undefined}
+    aria-label={reveal ? `Show color: ${alt}` : undefined}
+    aria-pressed={reveal ? 'false' : undefined}
+  >
+    <img src={src} alt={alt} loading="lazy" decoding="async" />
+    {reveal && (
+      <svg class="photo-reveal" viewBox={`0 0 ${columns} ${rows}`} aria-hidden="true" focusable="false">
+        <defs>
+          <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width={columns} height={rows} shape-rendering="crispEdges">
+            {order.map((rank, index) => (
+              <rect x={index % columns} y={Math.floor(index / columns)} width="1" height="1" fill="white" style={`--reveal-delay: ${rank * 1.25}ms`} />
+            ))}
+          </mask>
+        </defs>
+        <image width={columns} height={rows} preserveAspectRatio="xMidYMid slice" mask={`url(#${maskId})`} />
+      </svg>
+    )}
+  </Frame>
+  {credit && (
+    <figcaption class="photo-caption"><Link href={credit.href}>Photo: {credit.name}</Link></figcaption>
+  )}
+</figure>
+
+<script>
+  for (const figure of document.querySelectorAll<HTMLElement>('[data-photo-reveal]')) {
+    const image = figure.querySelector('img')!;
+    const button = figure.querySelector('button')!;
+    const colorImage = figure.querySelector('svg image')!;
+    function setSource() {
+      if (image.naturalWidth) {
+        colorImage.setAttribute('href', image.currentSrc);
+      }
+    }
+    image.addEventListener('load', setSource);
+    if (image.complete) setSource();
+
+    button.addEventListener('click', () => {
+      const pressed = button.getAttribute('aria-pressed') !== 'true';
+      button.setAttribute('aria-pressed', String(pressed));
+    });
+  }
+</script>

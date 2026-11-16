@@ -1,0 +1,117 @@
+---
+import { equipment } from '../data/equipment';
+import EquipmentPhoto from './EquipmentPhoto.astro';
+import DitherButton from './ph/DitherButton.astro';
+import Icon from './ph/Icon.astro';
+import NavLink from './ph/NavLink.astro';
+---
+
+<section class="equipment-directory section-rule" id="equipment" aria-labelledby="equipment-title">
+  <h2 class="ph-headline section-title" id="equipment-title">Equipment</h2>
+
+  <div class="inventory-layout">
+    <nav class="inventory-index" aria-label="Equipment sections">
+      {equipment.map(({ id, title }) => <NavLink href={`#${id}`}>{title}</NavLink>)}
+    </nav>
+
+    <div class="inventory-content">
+      {equipment.map(({ id, title, groups, action }) => (
+        <section class="inventory-section" id={id} aria-labelledby={`${id}-title`}>
+          <div class="inventory-heading">
+            <h3 class="ph-headline" id={`${id}-title`}>{title}</h3>
+            {action && (
+              <DitherButton href={action.href}>
+                <span class="cta-label">{action.label} <Icon name="external-link" /></span>
+              </DitherButton>
+            )}
+          </div>
+
+          <div class="inventory-groups">
+            {groups.map((group) => (
+              <div class:list={['inventory-group', {
+                'inventory-group--wide': group.layout || group.items.some((item) => item.photo || item.specs),
+                'inventory-group--inline': group.layout === 'inline',
+              }]}>
+                {group.title && <h4 class="inventory-group-title ph-subheadline">{group.title}</h4>}
+                <ul class:list={['inventory-items', { 'inventory-gallery': group.layout === 'gallery' }]} role="list">
+                  {group.items.map(({ name, detail, photo, specs }) => (
+                    <li class:list={['inventory-item', { 'inventory-item--photo': photo }]}>
+                      {photo && (
+                        <EquipmentPhoto name={name} {...photo} reveal={group.layout === 'gallery'} />
+                      )}
+                      <div>
+                        <p class="inventory-item-name">{name}</p>
+                        {detail && <p class="inventory-item-detail">{detail}</p>}
+                        {specs && (
+                          <dl class="inventory-specs">
+                            {specs.map(({ label, value }) => (
+                              <div>
+                                <dt class="ph-subheadline">{label}</dt>
+                                <dd>{value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                {group.note && <p class="inventory-note">{group.note}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  const directory = document.querySelector<HTMLElement>('.equipment-directory')!;
+  const index = directory.querySelector<HTMLElement>('.inventory-index')!;
+  const links = [...index.querySelectorAll('a')];
+  const sections = [...directory.querySelectorAll<HTMLElement>('.inventory-section')];
+  const mobile = matchMedia('(max-width: 47.99rem)');
+  let current = -1;
+  let frame = 0;
+
+  function markCurrent() {
+    frame = 0;
+    const viewportHeight = document.documentElement.clientHeight;
+    const scrollLine = mobile.matches ? index.offsetHeight + 32 : 40;
+    const atBottom = Math.ceil(window.scrollY + viewportHeight) >= document.documentElement.scrollHeight;
+    const requested = links.findIndex((link) => link.hash === location.hash);
+    let next = sections.findLastIndex((section) => section.getBoundingClientRect().top <= scrollLine);
+    if (atBottom) {
+      const target = sections[requested]?.getBoundingClientRect();
+      next = target && target.bottom > scrollLine && target.top < viewportHeight
+        ? requested : sections.length - 1;
+    }
+    next = Math.max(next, 0);
+    if (next === current) return;
+    links[current]?.removeAttribute('aria-current');
+    const active = links[next];
+    active.setAttribute('aria-current', 'location');
+    current = next;
+
+    if (index.scrollHeight > index.clientHeight) {
+      const track = index.getBoundingClientRect();
+      const item = active.getBoundingClientRect();
+      if (item.top < track.top) index.scrollTop += item.top - track.top;
+      if (item.bottom > track.bottom) index.scrollTop += item.bottom - track.bottom;
+    }
+  }
+
+  function scheduleUpdate() {
+    if (!frame) frame = requestAnimationFrame(markCurrent);
+  }
+
+  addEventListener('scroll', scheduleUpdate, { passive: true });
+  addEventListener('resize', scheduleUpdate);
+  addEventListener('hashchange', scheduleUpdate);
+  new ResizeObserver(() => {
+    directory.style.setProperty('--inventory-index-height', `${index.offsetHeight}px`);
+    scheduleUpdate();
+  }).observe(index);
+  markCurrent();
+</script>

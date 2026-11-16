@@ -1,0 +1,110 @@
+---
+import Button from '../components/ph/Button.astro';
+import EquipmentDirectory from '../components/EquipmentDirectory.astro';
+import Footer from '../components/ph/Footer.astro';
+import Link from '../components/ph/Link.astro';
+import LogoGrid from '../components/ph/LogoGrid.astro';
+import Navbar from '../components/ph/Navbar.astro';
+import PhotoDitherFilters from '../components/PhotoDitherFilters.astro';
+import ShopHours from '../components/ShopHours.astro';
+import ThemeScript from '../components/ph/ThemeScript.astro';
+import ThemeToggle from '../components/ph/ThemeToggle.astro';
+import { getShopHours } from '../lib/shop-hours';
+import '../styles/site.css';
+
+const discord = 'https://discord.gg/5paFjKzdPE';
+const nav = [
+  { label: 'Hours', href: '#hours' },
+  { label: 'First visit', href: '#visit' },
+  { label: 'Equipment', href: '#equipment' },
+];
+const schedule = await getShopHours();
+Astro.response.headers.set('Cache-Control', 'public, max-age=60');
+const bayer = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
+const edgeRows = 16;
+const edgeCells = Array.from({ length: edgeRows }, (_, row) =>
+  bayer[row % 4].flatMap((threshold, column) =>
+    (row + 0.5) / edgeRows > (threshold + 0.5) / 16
+      ? [`<rect x="${column}" y="${row}" width="1" height="1"/>`] : [],
+  ),
+).flat().join('');
+const edge = 'data:image/svg+xml,' + encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 ${edgeRows}" shape-rendering="crispEdges">${edgeCells}</svg>`,
+);
+const sponsors = [
+  { name: 'iFixit', src: './assets/ifixit-light.svg', darkSrc: './assets/ifixit.svg', href: 'https://www.ifixit.com/', width: 121, height: 37 },
+  { name: 'Milwaukee Tool', src: './assets/milwaukee.svg', href: 'https://www.milwaukeetool.com/', width: 118, height: 56 },
+  { name: 'SUNLU', src: './assets/sunlu.png', href: 'https://www.sunlu.com/', width: 112, height: 26 },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Hours, equipment, and first-visit information for the HIVE makerspace at Purdue." />
+    <title>HIVE Makerspace · Purdue Hackers</title>
+    <ThemeScript />
+  </head>
+  <body>
+    <PhotoDitherFilters />
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Navbar class="masthead" tone="light" homeHref="https://www.purduehackers.com/" links={nav}>
+      <span slot="brand" class="masthead-wordmark">Purdue Hackers</span>
+      <ThemeToggle slot="actions" class="size-11" />
+    </Navbar>
+
+    <main id="main">
+      <div class="hero" style={`--hero-edge: url("${edge}")`}>
+        <div class="hero-photo">
+          <img src="./assets/hive-hero.webp" width="1600" height="759" alt="Inside BHEE 280N, with an electronics bench on the left and a rack of 3D printers on the right" fetchpriority="high" />
+        </div>
+        <div class="hero-content shell">
+          <div class="intro dark">
+            <h1 class="ph-headline"><span>HIVE</span> makerspace</h1>
+            <div class="intro-copy">
+              <p>A shared workshop from Purdue HIVE and Purdue Hackers for 3D printing, electronics, and hands-on projects.</p>
+              <Button href="#visit" variant="outline" iconEnd="location-pin">BHEE 280N</Button>
+            </div>
+          </div>
+          <ShopHours schedule={schedule} />
+        </div>
+      </div>
+
+      <div class="shell">
+      <section class="visit section-rule" id="visit">
+        <div>
+          <h2 class="ph-headline section-title">First visit</h2>
+          <p>Ping Neel in <Link href={discord}>Discord</Link> before heading to <strong>BHEE 280N</strong> so he can let you in. If someone answers the door, say you’re here to meet Neel to use the makerspace.</p>
+        </div>
+        <div class="rules" id="rules">
+          <h3>Shop rules</h3>
+          <ul>
+            <li>Use the shop only while an organizer is present.</li>
+            <li>Keep tools in the makerspace. Ask an organizer before borrowing anything.</li>
+            <li>Wear safety glasses when using the drill or Dremel.</li>
+            <li>Clean up after yourself. Put everything away if you’ll be gone for more than 30 minutes.</li>
+          </ul>
+        </div>
+      </section>
+
+      <EquipmentDirectory />
+
+      <section class="sponsors" id="sponsors" aria-labelledby="sponsors-title">
+        <h2 class="ph-headline" id="sponsors-title">Sponsors</h2>
+        <LogoGrid logos={sponsors} />
+      </section>
+      </div>
+    </main>
+
+    <Footer class="shell site-footer" links={[
+      { label: 'Purdue Hackers', href: 'https://www.purduehackers.com/' },
+      { label: 'Purdue HIVE', href: 'https://engineering.purdue.edu/HIVE' },
+      { label: 'Discord', href: discord },
+    ]}>
+      <Link href="https://pixeliconlibrary.com/">HackerNoon Pixel Icons · CC BY 4.0</Link>
+    </Footer>
+
+  </body>
+</html>

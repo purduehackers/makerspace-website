@@ -1,0 +1,49 @@
+---
+import { calendarUrl, type getShopHours } from '../lib/shop-hours';
+import Icon from './ph/Icon.astro';
+
+interface Props {
+  schedule: Awaited<ReturnType<typeof getShopHours>>;
+  entryHref?: string;
+}
+
+const { schedule, entryHref = '#visit' } = Astro.props;
+---
+
+<section class="hours" id="hours" aria-labelledby="hours-title">
+  <div class="hours-heading">
+    <h2 class="ph-headline" id="hours-title">Shop hours</h2>
+    <p class="ph-subheadline"><span>{schedule.range}</span> <span>Eastern time</span></p>
+  </div>
+  <p class="entry-note"><strong>The HIVE doors are locked.</strong> <a href={entryHref}>First visit</a></p>
+  {schedule.status !== 'current' && (
+    <p class="calendar-status">
+      {schedule.status === 'delayed' ? 'Calendar updates are delayed.' : 'Calendar hours are temporarily unavailable.'}
+      {' '}<a href={calendarUrl}>Check Google Calendar.</a>
+    </p>
+  )}
+  {schedule.entries.length > 0 ? (
+    <table aria-label="Upcoming staffed shop hours">
+      <tbody>
+        {schedule.entries.map(({ date, time, title, location, description }) => (
+          <tr>
+            <th scope="row">{date}</th>
+            <td>
+              <span>{time}</span>
+              {title && title !== 'HIVE Makerspace' && <small>{title}</small>}
+              {location && <small>{location}</small>}
+              {description && <small class="calendar-description">{description}</small>}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  ) : schedule.status !== 'unavailable' && <p class="calendar-status">No staffed hours are listed for these dates.</p>}
+  <div class="hack-night">
+    <a href="https://events.purduehackers.com/">
+      <span>Hack Night</span>
+      <span>See events</span>
+      <Icon name="external-link" />
+    </a>
+  </div>
+</section>

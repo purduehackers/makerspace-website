@@ -1,0 +1,27 @@
+---
+const bayer4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+const cells = bayer4.map((threshold, index) => {
+  const tone = Math.round((threshold + 0.5) * 255 / 16);
+  return `<rect x="${index % 4}" y="${Math.floor(index / 4)}" width="1" height="1" fill="rgb(${tone},${tone},${tone})"/>`;
+});
+const tile = 'data:image/svg+xml,' + encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 4 4" shape-rendering="crispEdges">${cells.join('')}</svg>`,
+);
+---
+
+<svg class="photo-dither-filters" width="0" height="0" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="printer-dither" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feColorMatrix in="SourceGraphic" type="saturate" values="0" result="photo" />
+      <feImage href={tile} x="0" y="0" width="4" height="4" result="tile" />
+      <feTile in="tile" result="screen" />
+      <feComposite in="photo" in2="screen" operator="arithmetic" k2="1" k3="0.22" k4="-0.11" result="patterned" />
+      <feComponentTransfer in="patterned" result="dithered">
+        <feFuncR type="discrete" tableValues="0 0.25 0.5 0.75 1" />
+        <feFuncG type="discrete" tableValues="0 0.25 0.5 0.75 1" />
+        <feFuncB type="discrete" tableValues="0 0.25 0.5 0.75 1" />
+      </feComponentTransfer>
+      <feComposite in="photo" in2="dithered" operator="arithmetic" k2="0.42" k3="0.58" />
+    </filter>
+  </defs>
+</svg>

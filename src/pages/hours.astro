@@ -1,0 +1,64 @@
+---
+import ShopHours from '../components/ShopHours.astro';
+import Button from '../components/ph/Button.astro';
+import ThemeScript from '../components/ph/ThemeScript.astro';
+import { getShopHours } from '../lib/shop-hours';
+import '../styles/site.css';
+
+const schedule = await getShopHours();
+const title = `HIVE Makerspace hours · ${schedule.range}`;
+const description = 'View upcoming staffed hours and entry instructions for the HIVE makerspace in BHEE 280N.';
+const hoursUrl = new URL('/hours/', Astro.site ?? Astro.url).href;
+const times = schedule.status === 'current'
+  ? schedule.entries.map(({ day, time }) => ({ day, time: time.replace(/\s*–\s*/g, '–') }))
+  : [];
+const plainHours = times.map(({ day, time }) => `${day} · ${time}`).join('\n');
+const showHours = plainHours.length > 0 && plainHours.length <= 225;
+const previewDescription = showHours ? `${plainHours}\n\nEastern time · BHEE 280N` : description;
+const discordEmbed = {
+  component: {
+    type: 17,
+    accent_color: 0xfcd202,
+    components: [
+      { type: 10, content: `### HIVE Makerspace hours\n${schedule.range} · Eastern time` },
+      {
+        type: 10,
+        content: showHours
+          ? times.map(({ day, time }) => `**${day}** · ${time}`).join('\n')
+          : description,
+      },
+      { type: 10, content: 'BHEE 280N · Ping Neel before coming.' },
+      {
+        type: 1,
+        components: [{ type: 2, style: 5, label: 'Open hours', url: hoursUrl }],
+      },
+    ],
+  },
+};
+const embedJson = JSON.stringify(discordEmbed).replace(/</g, '\\u003c');
+Astro.response.headers.set('Cache-Control', 'public, max-age=60');
+---
+
+<!doctype html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={previewDescription} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Purdue Hackers" />
+    <meta property="og:url" content={hoursUrl} />
+    <script is:inline id="discord:component-embed" type="application/json" set:html={embedJson}></script>
+    <ThemeScript />
+  </head>
+  <body>
+    <main class="hours-share shell">
+      <h1 class="ph-headline section-title">HIVE makerspace</h1>
+      <ShopHours schedule={schedule} entryHref="/#visit" />
+      <Button href="/#hours" variant="outline" icon="arrow-left">Back to the makerspace</Button>
+    </main>
+  </body>
+</html>

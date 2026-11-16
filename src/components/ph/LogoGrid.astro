@@ -1,0 +1,48 @@
+---
+import "./logo-grid.css";
+
+type Logo = {
+  name: string;
+  src: string;
+  darkSrc?: string;
+  href?: string;
+  /** Size normalized around a 48px base. Omit for a plain 0.75em-tall logo. */
+  width?: number;
+  height?: number;
+  /** Optical-centering nudge in em, e.g. "translate(0em, -0.02em)". */
+  transform?: string;
+};
+
+type Props = {
+  logos: Logo[];
+  tone?: "light" | "dark";
+  class?: string;
+};
+
+const BASE = 48;
+const { logos, tone, class: className } = Astro.props;
+---
+
+<div data-tone={tone} class:list={["ph-logo-grid", className]}>
+  {
+    logos.map((l) => {
+      const Cell = l.href ? "a" : "div";
+      const size = l.width && l.height ? `width: ${l.width / BASE}em; height: ${l.height / BASE}em;` : "height: 0.75em; width: auto;";
+      return (
+        <Cell
+          class="ph-logo-grid__cell"
+          href={l.href}
+          target={l.href ? "_blank" : undefined}
+          rel={l.href ? "noopener noreferrer" : undefined}
+          style={`${size}${l.transform ? ` transform: ${l.transform};` : ""}`}
+        >
+          <img class="ph-logo-grid__img ph-logo-grid__img--wash" src={l.src} alt={l.name} width={l.width} height={l.height} loading="lazy" decoding="async" />
+          <img class:list={["ph-logo-grid__img ph-logo-grid__img--brand", { "ph-logo-grid__img--brand-light": l.darkSrc }]} src={l.src} alt="" aria-hidden="true" width={l.width} height={l.height} loading="lazy" decoding="async" />
+          {l.darkSrc && (
+            <img class="ph-logo-grid__img ph-logo-grid__img--brand ph-logo-grid__img--brand-dark" src={l.darkSrc} alt="" aria-hidden="true" width={l.width} height={l.height} loading="lazy" decoding="async" />
+          )}
+        </Cell>
+      );
+    })
+  }
+</div>
