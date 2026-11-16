@@ -5,11 +5,13 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "build:vercel": "astro build --config astro.vercel.config.mjs",
     "preview": "astro preview",
     "start": "node ./dist/server/entry.mjs"
   },
   "dependencies": {
     "@astrojs/node": "^10.1.4",
+    "@astrojs/vercel": "^10.0.8",
     "@tailwindcss/postcss": "^4.1.0",
     "astro": "^6.0.0",
     "node-ical": "^0.27.6",
